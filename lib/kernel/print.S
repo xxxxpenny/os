@@ -126,9 +126,10 @@ global put_str
 put_str:
     push ebx
     push ecx
+    push ebp
     xor ecx,ecx
     mov ebp,esp
-    mov ebx, [ebp+12]
+    mov ebx, [ebp+16]
 .goon:
     mov cl,[ebx]
     cmp cl,0
@@ -139,6 +140,7 @@ put_str:
     inc ebx
     jmp .goon
 .str_over:
+    pop ebp
     pop ecx
     pop ebx
     ret

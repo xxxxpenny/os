@@ -297,7 +297,7 @@ kernel_init:
     xor eax,eax
     xor ebx,ebx ;ebx 记录程序头表位置
     xor ecx,ecx ;cx 记录程序中 program header 数量 
-    xor edx,edx ;dx 记录program header 尺寸,及e_phentsize
+    xor edx,edx ;dx 记录program header 尺寸,即e_phentsize
 
     ;e_phentsize
     mov dx,[KERNEL_BIN_BASE_ADDR+42]
