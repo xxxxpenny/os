@@ -46,6 +46,14 @@ static void general_intr_handler(uint8_t vec_nr) {
   put_str("int vector: 0x");
   put_int(vec_nr);
   put_char('\n');
+  if (vec_nr == 14) {  // 若为Pagefault,将缺失的地址打印出来并悬停
+    int page_fault_vaddr = 0;
+    asm("movl %%cr2, %0"
+        : "=r"(page_fault_vaddr));  // cr2是存放造成page_fault的地址
+    put_str("\npage fault addr is 0x");
+    put_int(page_fault_vaddr);
+    put_str("\n");
+  }
 }
 
 static void exception_init() {
