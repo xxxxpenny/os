@@ -31,10 +31,6 @@ static void* vaddr_get(enum pool_flags pf, uint32_t pg_cnt) {
   uint32_t cnt = 0;
   if (pf == PF_KERNEL) {
     bit_idx_start = bitmap_scan(&kernel_addr.vaddr, pg_cnt);
-    put_str("\n");
-    put_int(bit_idx_start);
-    put_str("\n");
-
     if (bit_idx_start == -1) return NULL;
     while (cnt < pg_cnt) {
       bitmap_set(&kernel_addr.vaddr, bit_idx_start + cnt, 1);
