@@ -8,4 +8,6 @@ enum intr_status intr_enable();
 enum intr_status intr_disable();
 enum intr_status intr_set_status(enum intr_status status);
 enum intr_status intr_get_status();
+
+void register_intr_handler(uint8_t vec_no, intr_handler function);
 #endif

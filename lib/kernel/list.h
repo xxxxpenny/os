@@ -3,9 +3,9 @@
 
 #include "global.h"
 
-#define offset(struct_type, member) (int)(&(((struct_type*)0)->member))
+#define offset(struct_type, member) (int32_t)(&(((struct_type*)0)->member))
 #define elem2entry(struct_type, struct_member_name, elem_ptr) \
-  (struct_type*)((int32_t)elem_ptr - offset(struct_type, struct_member_name)
+  (struct_type*)((int32_t)elem_ptr - offset(struct_type, struct_member_name))
 
 struct list_element {
   struct list_element* prev;
@@ -25,6 +25,7 @@ void list_init(struct list* list);
 void list_insert_before(struct list_element* before,
                         struct list_element* element);
 void list_push(struct list* list, struct list_element* element);
+struct list_element* list_pop(struct list* list);
 void list_iterate(struct list* list);
 void list_append(struct list* list, struct list_element* element);
 void list_remove(struct list_element* element);

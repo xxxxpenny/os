@@ -77,5 +77,8 @@ struct task_struct {
 
 struct task_struct* thread_start(char* name, uint8_t priority,
                                  thread_func function, void* args);
+struct task_struct* running_thread();
+void schedule();
+void thread_init();
 
 #endif

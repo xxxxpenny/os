@@ -17,6 +17,7 @@ void list_insert_before(struct list_element* before,
   before->prev = element;
   intr_set_status(old_status);
 }
+
 void list_push(struct list* list, struct list_element* element) {
   list_insert_before(list->head.next, element);
 }
@@ -28,9 +29,11 @@ struct list_element* list_pop(struct list* list) {
 }
 
 void list_iterate(struct list* list) {}
+
 void list_append(struct list* list, struct list_element* element) {
   list_insert_before(&list->tail, element);
 }
+
 void list_remove(struct list_element* element) {
   enum intr_status old_status = intr_disable();
   element->prev->next = element->next;
@@ -41,6 +44,7 @@ void list_remove(struct list_element* element) {
 bool list_empty(struct list* list) {
   return list->head.next == &list->tail ? true : false;
 }
+
 uint32_t list_len(struct list* list) {
   uint32_t len = 0;
   struct list_element* p = list->head.next;
@@ -50,6 +54,7 @@ uint32_t list_len(struct list* list) {
   }
   return len;
 }
+
 struct list_element* list_traversal(struct list* list, function func,
                                     int32_t arg) {
   if (list_empty(list)) return NULL;
@@ -60,6 +65,7 @@ struct list_element* list_traversal(struct list* list, function func,
   }
   return NULL;
 }
+
 bool element_find(struct list* list, struct list_element* element) {
   struct list_element* p = list->head.next;
   while (p != &list->tail) {

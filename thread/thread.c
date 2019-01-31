@@ -3,6 +3,7 @@
 #include "global.h"
 #include "interrupt.h"
 #include "memory.h"
+#include "print.h"
 #include "stdint.h"
 #include "string.h"
 
@@ -17,7 +18,7 @@ extern void switch_to(struct task_struct* cur, struct task_struct* next);
 
 struct task_struct* running_thread() {
   uint32_t esp;
-  asm volatile("mov %%esp, 0" : "=g"(esp));
+  asm volatile("mov %%esp, %0" : "=g"(esp));
   return (struct task_struct*)(esp & 0xfffff000);
 }
 
@@ -30,6 +31,9 @@ static void kernel_thread(thread_func* function, void* args) {
 void create_therad(struct task_struct* pthread, thread_func function,
                    void* args) {
   pthread->self_kstack -= sizeof(struct intr_stack);
+
+  // 留出线程栈空间,因为现在的赋值,是从低地址到高地址的
+  // 不留出的话,会造成覆盖 intr_stack
   pthread->self_kstack -= sizeof(struct thread_stack);
 
   struct thread_stack* kthread_stack =
@@ -66,14 +70,16 @@ struct task_struct* thread_start(char* name, uint8_t priority,
   list_append(&thread_list_ready, &pthread->general_tag);
   ASSERT(!element_find(&thread_list_all, &pthread->list_all_tag));
   list_append(&thread_list_all, &pthread->list_all_tag);
-  // asm volatile(
-  //     "movl %0, %%esp;\
-  //     pop %%ebp;\
-  //     pop %%ebx;\
-  //     pop %%edi;\
-  //     pop %%esi;\
-  //     ret" ::"g"(pthread->self_kstack)
-  //     : "memory");
+  /*
+  asm volatile(
+      "movl %0, %%esp;\
+      pop %%ebp;\
+      pop %%ebx;\
+      pop %%edi;\
+      pop %%esi;\
+      ret" ::"g"(pthread->self_kstack)
+      : "memory");
+  **/
   return pthread;
 }
 
@@ -85,4 +91,35 @@ static void make_main_thread() {
   init_thread(main_thread, "main", 31);
   ASSERT(!element_find(&thread_list_all, &main_thread->list_all_tag));
   list_append(&thread_list_all, &main_thread->list_all_tag);
+}
+
+void schedule() {
+  ASSERT(intr_get_status() == INTR_OFF);
+  struct task_struct* cur_thread = running_thread();
+  if (cur_thread->status == TASK_RUNNING) {
+    ASSERT(!element_find(&thread_list_ready, &cur_thread->general_tag));
+    list_append(&thread_list_ready, &cur_thread->general_tag);
+    cur_thread->ticks = cur_thread->priority;
+    cur_thread->status = TASK_READY;
+  }
+
+  ASSERT(!list_empty(&thread_list_ready));
+  thread_tag = NULL;
+  thread_tag = list_pop(&thread_list_ready);
+  struct task_struct* next =
+      elem2entry(struct task_struct, general_tag, thread_tag);
+  next->status = TASK_RUNNING;
+  switch_to(cur_thread, next);
+}
+
+void thread_init() {
+  put_str("thread init start\n");
+  list_init(&thread_list_all);
+  list_init(&thread_list_ready);
+  make_main_thread();
+  put_int(list_len(&thread_list_all));
+  put_char('\n');
+  put_int(list_len(&thread_list_ready));
+
+  put_str("thread init done\n");
 }
