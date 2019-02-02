@@ -14,29 +14,29 @@
 struct pool {
   struct bitmap pool_bitmap;
   uint32_t phy_addr_start;
-  uint32_t phy_size;
+  uint32_t pool_size;
 };
 
 struct virtual_addr {
-  struct bitmap vaddr;
+  struct bitmap vaddr_btmp;
   uint32_t vaddr_start;
 };
 
 struct pool kernel_pool, user_pool;
 
-struct virtual_addr kernel_addr;
+struct virtual_addr kernel_vaddr;
 
 static void* vaddr_get(enum pool_flags pf, uint32_t pg_cnt) {
   int32_t vaddr_start = 0, bit_idx_start = -1;
   uint32_t cnt = 0;
   if (pf == PF_KERNEL) {
-    bit_idx_start = bitmap_scan(&kernel_addr.vaddr, pg_cnt);
+    bit_idx_start = bitmap_scan(&kernel_vaddr.vaddr_btmp, pg_cnt);
     if (bit_idx_start == -1) return NULL;
     while (cnt < pg_cnt) {
-      bitmap_set(&kernel_addr.vaddr, bit_idx_start + cnt, 1);
+      bitmap_set(&kernel_vaddr.vaddr_btmp, bit_idx_start + cnt, 1);
       cnt++;
     }
-    vaddr_start = kernel_addr.vaddr_start + bit_idx_start * PAGE_SZIE;
+    vaddr_start = kernel_vaddr.vaddr_start + bit_idx_start * PAGE_SZIE;
   } else {
     // 实现用户进程再补充
   }
@@ -62,13 +62,13 @@ static void mem_pool_init(uint32_t all_mem) {
   uint32_t up_st = kp_st + kernel_free_pages * PAGE_SZIE;
 
   kernel_pool.phy_addr_start = kp_st;
-  kernel_pool.phy_size = kernel_free_pages * PAGE_SZIE;
-  kernel_pool.pool_bitmap.bmap_bytes_cnt = kbm_length;
+  kernel_pool.pool_size = kernel_free_pages * PAGE_SZIE;
+  kernel_pool.pool_bitmap.btmp_bytes_len = kbm_length;
   kernel_pool.pool_bitmap.bits = (void*)MEM_BITMAP_BASE;
 
   user_pool.phy_addr_start = up_st;
-  user_pool.phy_size = user_free_pages * PAGE_SZIE;
-  user_pool.pool_bitmap.bmap_bytes_cnt = ubm_length;
+  user_pool.pool_size = user_free_pages * PAGE_SZIE;
+  user_pool.pool_bitmap.btmp_bytes_len = ubm_length;
   user_pool.pool_bitmap.bits = (void*)(MEM_BITMAP_BASE + kbm_length);
 
   put_str(" kernel_pool_bitmap_start:");
@@ -86,11 +86,11 @@ static void mem_pool_init(uint32_t all_mem) {
   bitmap_init(&kernel_pool.pool_bitmap);
   bitmap_init(&user_pool.pool_bitmap);
 
-  kernel_addr.vaddr.bmap_bytes_cnt = kbm_length;
-  kernel_addr.vaddr.bits = (void*)(MEM_BITMAP_BASE + kbm_length + ubm_length);
-  kernel_addr.vaddr_start = K_HEAP_START;
+  kernel_vaddr.vaddr_btmp.btmp_bytes_len = kbm_length;
+  kernel_vaddr.vaddr_btmp.bits = (void*)(MEM_BITMAP_BASE + kbm_length + ubm_length);
+  kernel_vaddr.vaddr_start = K_HEAP_START;
 
-  bitmap_init(&kernel_addr.vaddr);
+  bitmap_init(&kernel_vaddr.vaddr_btmp);
   put_str(" mem pool init done\n");
 }
 

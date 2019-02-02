@@ -173,14 +173,6 @@ p_mode_start:
 enter_kernel:
     call kernel_init
     mov esp,0xc009f000
-    ; mov ecx,81
-    ; mov esi,160
-    ; .print:
-    ;     mov byte [gs:esi],'V'
-    ;     inc esi
-    ;     mov byte [gs:esi],0x04
-    ;     inc esi
-    ;     loop .print
     jmp KERNEL_ENTRY_POINT
 
 

@@ -117,9 +117,5 @@ void thread_init() {
   list_init(&thread_list_all);
   list_init(&thread_list_ready);
   make_main_thread();
-  put_int(list_len(&thread_list_all));
-  put_char('\n');
-  put_int(list_len(&thread_list_ready));
-
   put_str("thread init done\n");
 }

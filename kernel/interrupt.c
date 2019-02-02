@@ -164,7 +164,7 @@ enum intr_status intr_set_status(enum intr_status status) {
 enum intr_status intr_get_status() {
   uint32_t eflag_var = 0;
   GET_EFLAGS(eflag_var);
-  return (eflag_var & EFLAGS_IF) == EFLAGS_IF ? INTR_ON : INTR_OFF;
+  return (eflag_var & EFLAGS_IF) ? INTR_ON : INTR_OFF;
 }
 
 void register_intr_handler(uint8_t vec_no, intr_handler function) {

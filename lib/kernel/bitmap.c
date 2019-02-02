@@ -6,7 +6,7 @@
 #include "string.h"
 
 void bitmap_init(struct bitmap* bmap) {
-  memset(bmap->bits, 0, bmap->bmap_bytes_cnt);
+  memset(bmap->bits, 0, bmap->btmp_bytes_len);
 }
 
 bool bitmap_scan_test(struct bitmap* bmap, uint32_t bit_idx) {
@@ -17,11 +17,11 @@ bool bitmap_scan_test(struct bitmap* bmap, uint32_t bit_idx) {
 
 int32_t bitmap_scan(struct bitmap* bmap, uint32_t cnt) {
   uint32_t byte_idx = 0;
-  while (bmap->bits[byte_idx] == 0xff && byte_idx < bmap->bmap_bytes_cnt) {
+  while (bmap->bits[byte_idx] == 0xff && byte_idx < bmap->btmp_bytes_len) {
     byte_idx++;
   }
-  ASSERT(byte_idx < bmap->bmap_bytes_cnt);
-  if (byte_idx == bmap->bmap_bytes_cnt) {
+  ASSERT(byte_idx < bmap->btmp_bytes_len);
+  if (byte_idx == bmap->btmp_bytes_len) {
     return -1;
   }
 
@@ -34,7 +34,7 @@ int32_t bitmap_scan(struct bitmap* bmap, uint32_t cnt) {
     return bit_idx_start;
   }
 
-  uint32_t bit_left = bmap->bmap_bytes_cnt * 8 - bit_idx_start;
+  uint32_t bit_left = bmap->btmp_bytes_len * 8 - bit_idx_start;
   uint32_t next_bit = bit_idx_start + 1;
   uint32_t count = 1;
 

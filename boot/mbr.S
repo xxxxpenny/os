@@ -15,15 +15,12 @@ section mbr vstart=0x7c00
 ;-----------------------------
 ;输入
 ;ah = 0x06
-    mov ax,0x600
-    mov bx,0x700
+    mov ax,0600h
+    mov bx,0700h
     mov cx,0
-    mov dx,0x184f
-    int 0x10
+    mov dx,184fh
 
-    mov ah,3
-    mov bh,0
-    int 0x10
+    int 10h
 
     mov byte [gs:0x00],'1'
     mov byte [gs:0x01],0xA4
@@ -97,11 +94,11 @@ rd_disk_m_16:
     mul dx
     mov cx,ax
     mov dx,0x1f0
-.go_on_ready:
+.go_on_read:
     in ax,dx
     mov [bx],ax
     add bx,2
-    loop .go_on_ready
+    loop .go_on_read
     ret
 
 
