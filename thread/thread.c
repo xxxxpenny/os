@@ -93,6 +93,39 @@ static void make_main_thread() {
   list_append(&thread_list_all, &main_thread->list_all_tag);
 }
 
+void thread_init() {
+  put_str("thread init start\n");
+  list_init(&thread_list_all);
+  list_init(&thread_list_ready);
+  make_main_thread();
+  put_str("thread init done\n");
+}
+
+void thread_block(enum task_status stat) {
+  ASSERT((stat == TASK_BLOCKED) || (stat == TASK_WAITING) ||
+         (stat == TASK_HANGING));
+  enum intr_status old_status = intr_disable();
+  struct task_struct* cur_thread = running_thread();
+  cur_thread->status = stat;
+  schedule();
+  intr_set_status(old_status);
+}
+
+void thread_unblock(struct task_struct* thread) {
+  enum intr_status old_status = intr_disable();
+  ASSERT((thread->status == TASK_BLOCKED) || (thread->status == TASK_WAITING) ||
+         (thread->status == TASK_HANGING));
+  if (thread->status != TASK_READY) {
+    ASSERT(!element_find(&thread_list_ready, &thread->general_tag));
+    if (element_find(&thread_list_ready, &thread->general_tag)) {
+      PANIC("thread unblock: blocked thread in ready list");
+    }
+    thread->status = TASK_READY;
+    list_push(&thread_list_ready, &thread->general_tag);
+  }
+  intr_set_status(old_status);
+}
+
 void schedule() {
   ASSERT(intr_get_status() == INTR_OFF);
   struct task_struct* cur_thread = running_thread();
@@ -110,12 +143,4 @@ void schedule() {
       elem2entry(struct task_struct, general_tag, thread_tag);
   next->status = TASK_RUNNING;
   switch_to(cur_thread, next);
-}
-
-void thread_init() {
-  put_str("thread init start\n");
-  list_init(&thread_list_all);
-  list_init(&thread_list_ready);
-  make_main_thread();
-  put_str("thread init done\n");
 }
