@@ -51,7 +51,7 @@ put_char:
 
     mov byte [gs:bx],0x20
     inc bx
-    mov byte [gs:bx],0x70
+    mov byte [gs:bx],0x07
     shr bx,1
 
     jmp .set_cursor

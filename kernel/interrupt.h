@@ -1,7 +1,7 @@
 #ifndef __KERNEL_INTERRUPT_H
 #define __KERNEL_INTERRUPT_H
 #include "stdint.h"
-typedef void *intr_handler;
+typedef void (*intr_handler);
 void idt_init();
 enum intr_status { INTR_OFF, INTR_ON };
 enum intr_status intr_enable();

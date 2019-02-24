@@ -4,7 +4,7 @@
 #include "print.h"
 #include "stdint.h"
 
-#define IDT_DESC_CNT 33
+#define IDT_DESC_CNT 0x30
 
 #define PIC_M_CTRL 0x20
 #define PIC_M_DATA 0x21
@@ -126,8 +126,11 @@ static void pic_init() {
   outb(PIC_S_DATA, 0x02);  // icw3
   outb(PIC_S_DATA, 0x01);  // icw4
 
-  outb(PIC_M_DATA, 0xfe);  // 主片打开1号中断
-  outb(PIC_S_DATA, 0xff);  // 从片全屏蔽
+  // outb(PIC_M_DATA, 0xfe);  // 主片打开1号中断
+  // outb(PIC_S_DATA, 0xff);  // 从片全屏蔽
+  // 开键盘中断
+  outb(PIC_M_DATA, 0xfd);
+  outb(PIC_S_DATA, 0xff);
 
   put_str(" pic init end\n");
 }
