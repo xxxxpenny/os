@@ -2,6 +2,7 @@
 #include "global.h"
 #include "interrupt.h"
 #include "io.h"
+#include "ioqueue.h"
 #include "print.h"
 #include "stdint.h"
 
@@ -31,6 +32,8 @@
 #define ctrl_r_make 0xe01d
 #define ctrl_r_break 0xe09d
 #define caps_lock_make 0x3a
+
+struct ioqueue kbd_buf;
 
 static bool ctrl_status, shift_status, alt_status, caps_lock_status,
     ext_scancode;
@@ -152,7 +155,14 @@ static void intr_keyboard_handler() {
     uint8_t idx = scancode & 0xff;
     uint8_t ch = keymap[idx][shift];
     if (ch != 0) {
-      put_char(ch);
+      // 这里需要这么判断下吗?
+      // 需要,因为收到中断,就会触发中断处理程序
+      // 如果内核 main 线程第一次阻塞在这里了,第一次缓冲区满
+      // 第二次再来,这个时候线程已经阻塞在这了,已经没有 main 线程了!!!
+      if (!ioq_full(&kbd_buf)) {
+        put_char(ch);
+        ioq_putchar(&kbd_buf, ch);
+      }
       return;
     }
     if (scancode == ctrl_l_make || scancode == ctrl_r_make) {
@@ -172,6 +182,7 @@ static void intr_keyboard_handler() {
 
 void keyboard_init() {
   put_str("keyboard init start\n");
+  ioqueue_init(&kbd_buf);
   register_intr_handler(0x21, intr_keyboard_handler);
   put_str("keyboard init done\n");
 }

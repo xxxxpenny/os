@@ -11,23 +11,23 @@ void put_str(char* str) {
 
 void put_int(uint32_t num) {
   char buf[N];
-  for (int8_t i = 0; i < 8; i++) {
-    buf[i] = num % 16 >= 10 ? num % 16 - 10 + 'A' : num % 16 - 0 + '0';
-    num = num / 16;
-    if (num == 0) {
-      break;
-    }
+  char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+  int8_t n = N;
+  while (--n >= 0) {
+    buf[n] = digits[num & 15];
+    num >>= 4;
   }
-  int8_t i = N - 1;
-  while (i >= 0) {
+  int8_t i = 0;
+  while (i < N) {
     if (buf[i] != '0') {
       break;
     }
-    i--;
+    i++;
   }
-  while (i >= 0) {
+  while (i < N) {
     put_char(buf[i]);
-    i--;
+    i++;
   }
 }
 

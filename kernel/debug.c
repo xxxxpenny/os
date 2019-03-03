@@ -5,6 +5,7 @@
 void panic_spin(char* filename, int line, const char* func,
                 const char* condition) {
   intr_disable();
+  put_int(11);
   put_str("filename: ");
   put_str(filename);
   put_char('\n');
