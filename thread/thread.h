@@ -1,7 +1,8 @@
 #ifndef __THREAD_THREAD_H
 #define __THREAD_THREAD_H
-#include "list.h"
-#include "stdint.h"
+#include "kernel/memory.h"
+#include "lib/kernel/list.h"
+#include "lib/stdint.h"
 
 typedef void thread_func(void*);
 
@@ -72,14 +73,26 @@ struct task_struct {
 
   uint32_t* pgdir;
 
+  struct virtual_addr userprog_vaddr;
+
   uint32_t stack_magic;
 };
+
+extern struct list thread_list_ready;
+extern struct list thread_list_all;
 
 struct task_struct* thread_start(char* name, uint8_t priority,
                                  thread_func function, void* args);
 struct task_struct* running_thread();
-void thread_block(enum task_status stat);
-void thread_unblock(struct task_struct* thread);
+void init_thread(struct task_struct* pthread, char* name, uint8_t priority);
+struct task_struct* thread_start(char* name, uint8_t priority,
+                                 thread_func function, void* args);
+void create_therad(struct task_struct* pthread, thread_func function,
+                   void* args);
+
+void block_thread(enum task_status stat);
+void unblock_thread(struct task_struct* thread);
+
 void schedule();
 void thread_init();
 

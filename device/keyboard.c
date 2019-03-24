@@ -1,10 +1,10 @@
-#include "keyboard.h"
-#include "global.h"
-#include "interrupt.h"
-#include "io.h"
-#include "ioqueue.h"
-#include "print.h"
-#include "stdint.h"
+#include "device/keyboard.h"
+#include "kernel/global.h"
+#include "kernel/interrupt.h"
+#include "lib/kernel/io.h"
+#include "device/ioqueue.h"
+#include "lib/kernel/print.h"
+#include "lib/stdint.h"
 
 #define KBD_BUF_PORT 0x60
 

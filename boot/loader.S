@@ -190,7 +190,7 @@ setup_page:
     .create_pde:
         mov eax,PAGE_DIR_TABLE_POS
         add eax,0x1000
-        ; 此处为 ebx 复值,是为.create_pte做准备,ebx 是基址
+        ; 此处为 ebx 赋值,是为.create_pte做准备,ebx 是基址
         mov ebx,eax
         ; 下面将页目录项0和0xc00都存为第一个页表的地址,每个页表表示4MB 内存
         ; 这样0xc03fffff一下的地址和0x003fffff一下的地址都指向相同的页表
@@ -198,8 +198,11 @@ setup_page:
         or eax,PG_US_U|PG_RW_W|PG_P
         mov [PAGE_DIR_TABLE_POS+0x0],eax
         mov [PAGE_DIR_TABLE_POS+0xc00],eax
+        ; 0x0000 0000 0000 0000 0001 0000 0000 0000  4kb
+        ; 32位地址4b 4b * 1024 = 4kb
         sub eax,0x1000
         ; 使最后一个页目录指向页表自己的位置
+        ; 4092 = 1023 * 4
         mov [PAGE_DIR_TABLE_POS+4092],eax
 
         ;创建 pte

@@ -1,13 +1,12 @@
-#include "thread.h"
-#include "debug.h"
-#include "global.h"
-#include "interrupt.h"
-#include "memory.h"
-#include "print.h"
-#include "stdint.h"
-#include "string.h"
-
-#define PAGE_SIZE 4096
+#include "thread/thread.h"
+#include "kernel/debug.h"
+#include "kernel/global.h"
+#include "kernel/interrupt.h"
+#include "kernel/memory.h"
+#include "lib/kernel/print.h"
+#include "lib/stdint.h"
+#include "lib/string.h"
+#include "userprog/process.h"
 
 struct task_struct* main_thread;
 struct list thread_list_ready;
@@ -34,6 +33,8 @@ void create_therad(struct task_struct* pthread, thread_func function,
 
   // 留出线程栈空间,因为现在的赋值,是从低地址到高地址的
   // 不留出的话,会造成覆盖 intr_stack
+  // magic_number + 1 -> self_kstack - sizeof(intr_stack)
+  // 都是 kstack
   pthread->self_kstack -= sizeof(struct thread_stack);
 
   struct thread_stack* kthread_stack =
@@ -101,7 +102,7 @@ void thread_init() {
   put_str("thread init done\n");
 }
 
-void thread_block(enum task_status stat) {
+void block_thread(enum task_status stat) {
   ASSERT((stat == TASK_BLOCKED) || (stat == TASK_WAITING) ||
          (stat == TASK_HANGING));
   enum intr_status old_status = intr_disable();
@@ -111,7 +112,7 @@ void thread_block(enum task_status stat) {
   intr_set_status(old_status);
 }
 
-void thread_unblock(struct task_struct* thread) {
+void unblock_thread(struct task_struct* thread) {
   enum intr_status old_status = intr_disable();
   ASSERT((thread->status == TASK_BLOCKED) || (thread->status == TASK_WAITING) ||
          (thread->status == TASK_HANGING));
@@ -142,5 +143,6 @@ void schedule() {
   struct task_struct* next =
       elem2entry(struct task_struct, general_tag, thread_tag);
   next->status = TASK_RUNNING;
+  process_activate(next);
   switch_to(cur_thread, next);
 }

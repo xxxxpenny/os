@@ -1,6 +1,6 @@
 #include "ioqueue.h"
-#include "debug.h"
-#include "interrupt.h"
+#include "kernel/debug.h"
+#include "kernel/interrupt.h"
 
 void ioqueue_init(struct ioqueue* queue) {
   lock_init(&queue->lock);
@@ -23,12 +23,12 @@ static bool ioq_empty(struct ioqueue* queue) {
 static void ioq_wait(struct task_struct** waiter) {
   ASSERT(*waiter == NULL && waiter != NULL);
   *waiter = running_thread();
-  thread_block(TASK_BLOCKED);
+  block_thread(TASK_BLOCKED);
 }
 
 static void wakeup(struct task_struct** waiter) {
   ASSERT(*waiter != NULL);
-  thread_unblock(*waiter);
+  unblock_thread(*waiter);
   *waiter = NULL;
 }
 

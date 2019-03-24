@@ -1,5 +1,5 @@
 #include "list.h"
-#include "interrupt.h"
+#include "kernel/interrupt.h"
 
 void list_init(struct list* list) {
   list->head.prev = NULL;

@@ -1,7 +1,7 @@
 #include "console.h"
-#include "print.h"
-#include "sync.h"
-#include "thread.h"
+#include "lib/kernel/print.h"
+#include "thread/sync.h"
+#include "thread/thread.h"
 
 static struct lock console_lock;
 

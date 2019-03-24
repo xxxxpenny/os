@@ -1,6 +1,6 @@
 #ifndef __LIB_KERNEL_IO_H
 #define __LIB_KERNEL_IO_H
-#include "stdint.h"
+#include "lib/stdint.h"
 
 // 写一个字节
 static inline void outb(uint16_t port, uint8_t data) {

@@ -1,8 +1,8 @@
-#include "sync.h"
-#include "debug.h"
-#include "interrupt.h"
-#include "list.h"
-#include "thread.h"
+#include "thread/sync.h"
+#include "kernel/debug.h"
+#include "kernel/interrupt.h"
+#include "lib/kernel/list.h"
+#include "thread/thread.h"
 
 void sema_init(struct semaphore* sema, uint8_t value) {
   sema->value = value;
@@ -23,7 +23,7 @@ void sema_down(struct semaphore* sema) {
       PANIC("sema down: thread blocked has benn in waiter list");
     }
     list_append(&sema->waiters, &running_thread()->general_tag);
-    thread_block(TASK_BLOCKED);
+    block_thread(TASK_BLOCKED);
   }
   sema->value--;
   ASSERT(sema->value == 0);
@@ -36,7 +36,7 @@ void sema_up(struct semaphore* sema) {
   if (!list_empty(&sema->waiters)) {
     struct task_struct* blocked_thread =
         elem2entry(struct task_struct, general_tag, list_pop(&sema->waiters));
-    thread_unblock(blocked_thread);
+    unblock_thread(blocked_thread);
   }
   sema->value++;
   ASSERT(sema->value == 1);
@@ -58,6 +58,7 @@ void lock_release(struct lock* lock) {
   ASSERT(lock->holder == running_thread());
   if (lock->holer_repeat_nr > 1) {
     lock->holer_repeat_nr--;
+    return;
   }
   ASSERT(lock->holer_repeat_nr == 1);
   lock->holder = NULL;

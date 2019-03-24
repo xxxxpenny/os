@@ -1,8 +1,8 @@
 #ifndef __THREAD_SYNC_H
 #define __THREAD_SYNC_H
-#include "list.h"
-#include "stdint.h"
-#include "thread.h"
+#include "lib/kernel/list.h"
+#include "lib/stdint.h"
+#include "thread/thread.h"
 
 struct semaphore {
   uint8_t value;

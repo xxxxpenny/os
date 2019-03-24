@@ -1,6 +1,6 @@
-#include "string.h"
-#include "debug.h"
-#include "global.h"
+#include "lib/string.h"
+#include "kernel/debug.h"
+#include "kernel/global.h"
 
 void memset(void* dst, uint8_t value, uint32_t size) {
   ASSERT(dst != NULL);

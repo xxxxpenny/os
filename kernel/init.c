@@ -1,11 +1,12 @@
 #include "init.h"
 #include "interrupt.h"
 #include "memory.h"
-#include "print.h"
-#include "thread.h"
-#include "timer.h"
-#include "console.h"
-#include "keyboard.h"
+#include "lib/kernel/print.h"
+#include "thread/thread.h"
+#include "device/timer.h"
+#include "device/console.h"
+#include "device/keyboard.h"
+#include "userprog/tss.h"
 
 void init_all() {
   put_str("init all\n");
@@ -15,5 +16,5 @@ void init_all() {
   timer_init();
   console_init();
   keyboard_init();
-  
+  tss_init();
 }

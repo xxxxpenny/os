@@ -1,16 +1,16 @@
 #include "interrupt.h"
-#include "global.h"
-#include "io.h"
-#include "print.h"
-#include "stdint.h"
-
-#define IDT_DESC_CNT 0x30
+#include "kernel/global.h"
+#include "kernel/memory.h"
+#include "lib/kernel/io.h"
+#include "lib/kernel/print.h"
+#include "lib/stdint.h"
 
 #define PIC_M_CTRL 0x20
 #define PIC_M_DATA 0x21
-
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
+
+#define IDT_DESC_CNT 0x30
 
 #define EFLAGS_IF 0x00000200
 #define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl;popl %0" : "=g"(EFLAG_VAR))
@@ -24,20 +24,53 @@ struct gate_desc {
   uint16_t func_offset_high_word;
 };
 
-static void general_intr_handler(uint8_t vec_nr);
-static void exception_init();
 static void make_idt_desc(struct gate_desc *p_desc, uint8_t attr,
                           intr_handler function);
-static void idt_desc_init();
-static void pic_init();
-
 static struct gate_desc idt[IDT_DESC_CNT];
-
-intr_handler idt_table[IDT_DESC_CNT];
 
 char *intr_name[IDT_DESC_CNT];
 
+intr_handler idt_table[IDT_DESC_CNT];
+
 extern intr_handler intr_entry_table[IDT_DESC_CNT];
+
+static void pic_init() {
+  // 初始化主片
+  outb(PIC_M_CTRL, 0x11);  // icw1
+  outb(PIC_M_DATA, 0x20);  // icw2
+  outb(PIC_M_DATA, 0x04);  // icw3
+  outb(PIC_M_DATA, 0x01);  // icw4
+
+  // 初始化从片
+  outb(PIC_S_CTRL, 0x11);  // icw1
+  outb(PIC_S_DATA, 0x28);  // icw2
+  outb(PIC_S_DATA, 0x02);  // icw3
+  outb(PIC_S_DATA, 0x01);  // icw4
+
+  outb(PIC_M_DATA, 0xfe);  // 主片打开1号中断
+  outb(PIC_S_DATA, 0xff);  // 从片全屏蔽
+  // 开键盘中断
+  // outb(PIC_M_DATA, 0xfd);
+  // outb(PIC_S_DATA, 0xff);
+
+  put_str(" pic init end\n");
+}
+
+static void make_idt_desc(struct gate_desc *p_desc, uint8_t attr,
+                          intr_handler function) {
+  p_desc->func_offset_low_word = (uint32_t)function & 0x0000FFFF;
+  p_desc->selector = SELECTOR_K_CODE;
+  p_desc->dcount = 0;
+  p_desc->attribute = attr;
+  p_desc->func_offset_high_word = ((uint32_t)function & 0xFFFF0000) >> 16;
+}
+
+static void idt_desc_init() {
+  for (int i = 0; i < IDT_DESC_CNT; i++) {
+    make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
+  }
+  put_str(" idt_desc_init done\n");
+}
 
 static void general_intr_handler(uint8_t vec_nr) {
   if (vec_nr == 0x27 || vec_nr == 0x2f) {
@@ -97,53 +130,6 @@ static void exception_init() {
   intr_name[19] = "#XF SIMD Floating-Point Exception";
 }
 
-static void make_idt_desc(struct gate_desc *p_desc, uint8_t attr,
-                          intr_handler function) {
-  p_desc->func_offset_low_word = (uint32_t)function & 0x0000FFFF;
-  p_desc->selector = SELECTOR_K_CODE;
-  p_desc->dcount = 0;
-  p_desc->attribute = attr;
-  p_desc->func_offset_high_word = ((uint32_t)function & 0xFFFF0000) >> 16;
-}
-
-static void idt_desc_init() {
-  for (int i = 0; i < IDT_DESC_CNT; i++) {
-    make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
-  }
-  put_str(" idt_desc_init done\n");
-}
-
-static void pic_init() {
-  // 初始化主片
-  outb(PIC_M_CTRL, 0x11);  // icw1
-  outb(PIC_M_DATA, 0x20);  // icw2
-  outb(PIC_M_DATA, 0x04);  // icw3
-  outb(PIC_M_DATA, 0x01);  // icw4
-
-  // 初始化从片
-  outb(PIC_S_CTRL, 0x11);  // icw1
-  outb(PIC_S_DATA, 0x28);  // icw2
-  outb(PIC_S_DATA, 0x02);  // icw3
-  outb(PIC_S_DATA, 0x01);  // icw4
-
-  // outb(PIC_M_DATA, 0xfe);  // 主片打开1号中断
-  // outb(PIC_S_DATA, 0xff);  // 从片全屏蔽
-  // 开键盘中断
-  outb(PIC_M_DATA, 0xfd);
-  outb(PIC_S_DATA, 0xff);
-
-  put_str(" pic init end\n");
-}
-
-void idt_init() {
-  put_str("idt init start\n");
-  idt_desc_init();
-  exception_init();
-  pic_init();
-  uint64_t idtr_op = ((sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16)));
-  asm volatile("lidt %0" : : "m"(idtr_op));
-}
-
 enum intr_status intr_enable() {
   enum intr_status old_status = intr_get_status();
   if (old_status != INTR_ON) {
@@ -172,4 +158,23 @@ enum intr_status intr_get_status() {
 
 void register_intr_handler(uint8_t vec_no, intr_handler function) {
   idt_table[vec_no] = function;
+}
+
+void idt_init() {
+  put_str("idt init start\n");
+  idt_desc_init();
+  exception_init();
+  pic_init();
+  // todo bug, idtr_op_t
+  // 没想明白为啥
+  // idtr_op   高32  0xc0007c20
+  // idtr_op_t 高32  0x00007c20
+  // 在内核态这两地址ok,在用户态不行
+  uint64_t idtr_op = (sizeof(idt) - 1) | ((uint64_t)(uint32_t)idt << 16);
+//   uint64_t idtr_op_t = (sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16));
+//   put_long(idtr_op);
+//   put_char('\n');
+//   put_long(idtr_op_t);
+//   put_char('\n');
+  asm volatile("lidt %0" : : "m"(idtr_op));
 }

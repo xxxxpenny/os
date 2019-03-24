@@ -3,7 +3,8 @@ ENTRY_POINT = 0xc0001500
 AS = nasm
 CC = docker run --rm -v $$PWD:/compile -w /compile i386/gcc gcc
 LD = docker run --rm -v $$PWD:/compile -w /compile i386/gcc ld
-LIB = -I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/ -I thread/
+# LIB = -I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/ -I thread/ -I userprog/
+LIB = -I .
 ASFLAGS = -f elf
 CFLAGS = -Wall $(LIB) -c -fno-builtin
 LDFLAGS = -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
@@ -13,12 +14,12 @@ OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o $(BUILD_DIR)/interrupt.o \
 			$(BUILD_DIR)/bitmap.o $(BUILD_DIR)/string.o $(BUILD_DIR)/thread.o \
 			$(BUILD_DIR)/list.o $(BUILD_DIR)/switch.o $(BUILD_DIR)/print.o \
 			$(BUILD_DIR)/sync.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o \
-			$(BUILD_DIR)/ioqueue.o
+			$(BUILD_DIR)/ioqueue.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/process.o
 
 ##############     c代码编译     ###############
 $(BUILD_DIR)/main.o: kernel/main.c lib/kernel/print.h \
         lib/stdint.h kernel/init.h kernel/memory.h thread/thread.h \
-				kernel/interrupt.h device/console.h
+				kernel/interrupt.h device/console.h userprog/process.h 
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/init.o: kernel/init.c kernel/init.h lib/kernel/print.h \
@@ -56,7 +57,7 @@ $(BUILD_DIR)/memory.o: kernel/memory.c kernel/memory.h lib/stdint.h lib/kernel/b
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/thread.o: thread/thread.c thread/thread.h kernel/global.h kernel/memory.h \
-	lib/stdint.h lib/string.h lib/kernel/list.h
+	lib/stdint.h lib/string.h lib/kernel/list.h userprog/process.h
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/list.o: lib/kernel/list.c lib/kernel/list.h kernel/interrupt.h
@@ -78,6 +79,13 @@ $(BUILD_DIR)/ioqueue.o: device/ioqueue.c device/ioqueue.h lib/stdint.h thread/sy
 	kernel/debug.h kernel/interrupt.h
 	$(CC) $(CFLAGS) $< -o $@
 
+$(BUILD_DIR)/tss.o: userprog/tss.c userprog/tss.h lib/stdint.h kernel/global.h kernel/memory.h lib/kernel/print.h \
+	thread/thread.h lib/string.h 
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/process.o: userprog/process.c userprog/process.h device/console.h kernel/debug.h \
+	kernel/global.h kernel/interrupt.h kernel/memory.h lib/string.h userprog/tss.h
+	$(CC) $(CFLAGS) $< -o $@
 
 ##############    汇编代码编译    ###############
 $(BUILD_DIR)/kernel.o: kernel/kernel.S

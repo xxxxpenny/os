@@ -1,6 +1,6 @@
 #ifndef __KERNEL_BITMAP_H
 #define __KERNEL_BITMAP_H
-#include "global.h"
+#include "kernel/global.h"
 #define BITMAP_MASK 1
 
 struct bitmap {

@@ -1,8 +1,8 @@
 #ifndef __DEVICDE_IOQUEUE_H
 #define __DEVICE_IOQUEUE_H
-#include "stdint.h"
-#include "sync.h"
-#include "thread.h"
+#include "lib/stdint.h"
+#include "thread/sync.h"
+#include "thread/thread.h"
 
 #define bufsize 64
 

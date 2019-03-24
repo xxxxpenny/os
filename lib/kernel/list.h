@@ -1,7 +1,7 @@
 #ifndef __LIB_KERNEL_LIST_H
 #define __LIB_KERNEL_LIST_H
 
-#include "global.h"
+#include "kernel/global.h"
 
 #define offset(struct_type, member) (int32_t)(&(((struct_type*)0)->member))
 #define elem2entry(struct_type, struct_member_name, elem_ptr) \
