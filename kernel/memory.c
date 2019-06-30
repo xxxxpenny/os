@@ -46,7 +46,7 @@ static void* vaddr_get(enum pool_flags pf, uint32_t pg_cnt) {
       bitmap_set(&cur->userprog_vaddr.vaddr_btmp, bit_idx_start + cnt, 1);
       cnt++;
     }
-    vaddr_start = cur->userprog_vaddr.vaddr_start + cnt * PAGE_SIZE;
+    vaddr_start = cur->userprog_vaddr.vaddr_start + bit_idx_start * PAGE_SIZE;
 
     // start process
     ASSERT((uint32_t)vaddr_start < (0xc0000000 - PAGE_SIZE));
