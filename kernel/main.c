@@ -2,6 +2,7 @@
 #include "init.h"
 #include "interrupt.h"
 #include "lib/kernel/print.h"
+#include "lib/stdio.h"
 #include "lib/user/syscall.h"
 #include "thread/thread.h"
 #include "userprog/process.h"
@@ -12,8 +13,6 @@ void k_thread_b(void* args);
 void userprog_a();
 void userprog_b();
 
-int prog_a_pid = 0, prog_b_pid = 0;
-
 int main(void) {
   put_str("I am kernel!\n");
   init_all();
@@ -23,7 +22,7 @@ int main(void) {
 
   intr_enable();
   console_put_str(" main pid:0x");
-  console_put_int(getpid());
+  console_put_int(sys_getpid());
   console_put_char('\n');
   thread_start("k_thread_a", 31, k_thread_a, "argA ");
   thread_start("k_thread_b", 8, k_thread_b, "argB ");
@@ -36,11 +35,8 @@ int main(void) {
 
 void k_thread_a(void* args) {
   char* str = args;
-  console_put_str(" thread_a_pid:0x");
+  console_put_str(" \nthread_a_pid:0x");
   console_put_int(sys_getpid());
-  console_put_char('\n');
-  console_put_str(" prog_a_pid:0x");
-  console_put_int(prog_a_pid);
   console_put_char('\n');
   while (1)
     ;
@@ -48,24 +44,23 @@ void k_thread_a(void* args) {
 
 void k_thread_b(void* args) {
   char* str = args;
-  console_put_str(" thread_b_pid:0x");
+  console_put_str(" \nthread_b_pid:0x");
   console_put_int(sys_getpid());
-  console_put_char('\n');
-  console_put_str(" prog_b_pid:0x");
-  console_put_int(prog_b_pid);
   console_put_char('\n');
   while (1)
     ;
 }
 
 void userprog_a() {
-  prog_a_pid = getpid();
+  char* name = "prog_a_pid";
+  printf("\nI am %s, my pid:%d%c", name, getpid(), '\n');
   while (1)
     ;
 }
 
 void userprog_b() {
-  prog_b_pid = getpid();
+  char* name = "prog_b_pid";
+  printf("\nI am %s, my pid:%d%c", name, getpid(), '\n');
   while (1)
     ;
 }

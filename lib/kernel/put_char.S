@@ -86,8 +86,8 @@ put_char:
 .roll_screen:
     cld
     mov ecx,960
-    mov esi,0x00b80a0
-    mov edi,0x00b8000
+    mov esi,0xc00b80a0
+    mov edi,0xc00b8000
 
     rep movsd
 
