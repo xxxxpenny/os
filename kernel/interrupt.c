@@ -10,7 +10,7 @@
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
 
-#define IDT_DESC_CNT 0x30
+#define IDT_DESC_CNT 0x81
 
 #define EFLAGS_IF 0x00000200
 #define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl;popl %0" : "=g"(EFLAG_VAR))
@@ -33,6 +33,8 @@ char *intr_name[IDT_DESC_CNT];
 intr_handler idt_table[IDT_DESC_CNT];
 
 extern intr_handler intr_entry_table[IDT_DESC_CNT];
+
+extern uint32_t syscall_handler(void);
 
 static void pic_init() {
   // 初始化主片
@@ -66,9 +68,11 @@ static void make_idt_desc(struct gate_desc *p_desc, uint8_t attr,
 }
 
 static void idt_desc_init() {
-  for (int i = 0; i < IDT_DESC_CNT; i++) {
+  int i, last_index = IDT_DESC_CNT - 1;
+  for (i = 0; i < IDT_DESC_CNT - 1; i++) {
     make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
   }
+  make_idt_desc(&idt[last_index], IDT_DESC_ATTR_DPL3, syscall_handler);
   put_str(" idt_desc_init done\n");
 }
 
