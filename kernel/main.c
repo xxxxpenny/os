@@ -1,6 +1,7 @@
 #include "device/console.h"
 #include "init.h"
 #include "interrupt.h"
+#include "kernel/memory.h"
 #include "lib/kernel/print.h"
 #include "lib/stdio.h"
 #include "lib/user/syscall.h"
@@ -16,16 +17,11 @@ void userprog_b();
 int main(void) {
   put_str("I am kernel!\n");
   init_all();
-
-  process_execute(userprog_a, "a");
-  process_execute(userprog_b, "b");
-
   intr_enable();
-  console_put_str(" main pid:0x");
-  console_put_int(sys_getpid());
-  console_put_char('\n');
+  process_execute(userprog_a, "userprog_a");
+  process_execute(userprog_b, "userprog_b");
   thread_start("k_thread_a", 31, k_thread_a, "argA ");
-  thread_start("k_thread_b", 8, k_thread_b, "argB ");
+  thread_start("k_thread_b", 31, k_thread_b, "argB ");
 
   while (1)
     ;
@@ -34,33 +30,73 @@ int main(void) {
 }
 
 void k_thread_a(void* args) {
-  char* str = args;
-  console_put_str(" \nthread_a_pid:0x");
-  console_put_int(sys_getpid());
+  void* addr1 = sys_malloc(256);
+  void* addr2 = sys_malloc(255);
+  void* addr3 = sys_malloc(254);
+  console_put_str("thread_a malloc addr:0x");
+  console_put_int((uint32_t)addr1);
+  console_put_char(',');
+  console_put_int((uint32_t)addr2);
+  console_put_char(',');
+  console_put_int((uint32_t)addr3);
   console_put_char('\n');
+  uint32_t cpu_delay = 10000;
+  while (--cpu_delay > 0)
+    ;
+  sys_free(addr1);
+  sys_free(addr2);
+  sys_free(addr3);
   while (1)
     ;
 }
 
 void k_thread_b(void* args) {
-  char* str = args;
-  console_put_str(" \nthread_b_pid:0x");
-  console_put_int(sys_getpid());
+  void* addr1 = sys_malloc(256);
+  void* addr2 = sys_malloc(255);
+  void* addr3 = sys_malloc(254);
+  console_put_str("thread_b malloc addr:0x");
+  console_put_int((uint32_t)addr1);
+  console_put_char(',');
+  console_put_int((uint32_t)addr2);
+  console_put_char(',');
+  console_put_int((uint32_t)addr3);
   console_put_char('\n');
+  uint32_t cpu_delay = 10000;
+  while (--cpu_delay > 0)
+    ;
+  sys_free(addr1);
+  sys_free(addr2);
+  sys_free(addr3);
   while (1)
     ;
 }
 
 void userprog_a() {
-  char* name = "prog_a_pid";
-  printf("\nI am %s, my pid:%d%c", name, getpid(), '\n');
-  while (1)
+  void* addr1 = malloc(256);
+  void* addr2 = malloc(255);
+  void* addr3 = malloc(254);
+  printf("prog_a molloc addr,0x%x,0x%x,0x%x\n", (uint32_t)addr1,
+         (uint32_t)addr2, (uint32_t)addr3);
+  uint32_t cpu_delay = 10000;
+  while (--cpu_delay > 0)
     ;
+  free(addr1);
+  free(addr2);
+  free(addr3);
+  while(1);
 }
 
 void userprog_b() {
-  char* name = "prog_b_pid";
-  printf("\nI am %s, my pid:%d%c", name, getpid(), '\n');
-  while (1)
+  void* addr1 = malloc(256);
+  void* addr2 = malloc(255);
+  void* addr3 = malloc(254);
+  printf("prog_b molloc addr,0x%x,0x%x,0x%x\n", (uint32_t)addr1,
+         (uint32_t)addr2, (uint32_t)addr3);
+  uint32_t cpu_delay = 10000;
+  while (--cpu_delay > 0)
     ;
+  free(addr1);
+  free(addr2);
+  free(addr3);
+  while(1);
 }

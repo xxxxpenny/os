@@ -2,6 +2,7 @@
 #define __KERNEL_MEMORY_H
 #include "lib/kernel/bitmap.h"
 #include "lib/stdint.h"
+#include "lib/kernel/list.h"
 
 enum pool_flags { PF_KERNEL = 1, PF_USER = 2 };
 
@@ -19,8 +20,24 @@ struct virtual_addr {
 
 extern struct pool kernel_pool, user_pool;
 
+struct mem_block {
+  struct list_element free_elem;
+};
+
+struct mem_block_desc {
+  uint32_t block_size;
+  uint32_t blocks_per_arnea;
+  struct list free_list;
+};
+
+#define DESC_CNT 7
+
 void mem_init();
 void* get_kernel_pages(uint32_t pg_cnt);
 void* get_a_page(enum pool_flags pf, uint32_t vaddr);
 uint32_t addr_v2p(uint32_t vaddr);
+void block_desc_init(struct mem_block_desc* desc_array);
+void* malloc_page(enum pool_flags pf, uint32_t pg_cnt);
+void* sys_malloc(uint32_t size);
+void sys_free(void* ptr);
 #endif
